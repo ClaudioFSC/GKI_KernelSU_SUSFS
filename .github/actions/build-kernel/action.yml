@@ -169,6 +169,91 @@ runs:
         fi
         echo "Page size verified: ${PAGE_SIZE}"
 
+    - name: 'Verify Pixel Stock Kernel Version and Timestamp'
+      if: inputs.version == 'android14-6.1'
+      shell: bash
+      working-directory: ${{ github.workspace }}/kernel
+      run: |
+        set -euo pipefail
+
+        python3 - <<'PY'
+        from pathlib import Path
+        import re
+        import sys
+
+        EXPECTED_RELEASE = (
+            "6.1.172-android14-11-"
+            "g8d0115b07367-ab16385437"
+        )
+        EXPECTED_SUFFIX = (
+            "#1 SMP PREEMPT "
+            "Fri Sep 18 01:33:13 UTC 2026"
+        )
+
+        candidates = [
+            Path("bazel-bin/common/kernel_aarch64/Image"),
+            Path("/home/runner/out/dist/Image"),
+        ]
+
+        image = next(
+            (p for p in candidates if p.is_file()),
+            None
+        )
+
+        if image is None:
+            sys.exit("ERROR: Kernel Image not found!")
+
+        data = image.read_bytes()
+
+        matches = re.findall(
+            rb"Linux version [^\x00\r\n]{1,600}",
+            data
+        )
+
+        versions = sorted({
+            m.decode("ascii", errors="replace")
+            for m in matches
+        })
+
+        print(f"Image: {image}")
+        print(f"Size: {len(data):,} bytes")
+
+        if len(versions) != 1:
+            for version in versions:
+                print(version)
+            sys.exit(
+                "ERROR: Expected exactly one unique "
+                "kernel version string!"
+            )
+
+        actual = versions[0]
+        print(f"Detected: {actual}")
+
+        parts = actual.split()
+        release = parts[2] if len(parts) > 2 else ""
+
+        if release != EXPECTED_RELEASE:
+            sys.exit(
+                "ERROR: Kernel version mismatch!\n"
+                f"Expected: {EXPECTED_RELEASE}\n"
+                f"Actual:   {release}"
+            )
+
+        if not actual.endswith(EXPECTED_SUFFIX):
+            sys.exit(
+                "ERROR: Kernel build timestamp mismatch!\n"
+                f"Expected suffix: {EXPECTED_SUFFIX}\n"
+                f"Actual: {actual}"
+            )
+
+        if "-Wild" in actual:
+            sys.exit("ERROR: Wild branding detected!")
+
+        print("PASS: Kernel version matches Pixel stock!")
+        print("PASS: Build timestamp matches Pixel stock!")
+        print("PASS: No Wild branding detected!")
+        PY
+
     - name: 'Gather Build Artifacts'
       shell: bash
       working-directory: ${{ github.workspace }}/kernel
