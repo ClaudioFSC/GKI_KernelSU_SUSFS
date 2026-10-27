@@ -85,7 +85,7 @@ runs:
           tools/bazel build \
             --config=fast \
             --config=stamp \
-            --workspace_status_command="${GITHUB_WORKSPACE}/.github/scripts/pixel_workspace_status.py" \
+            --workspace_status_command="python3 ${GITHUB_WORKSPACE}/.github/scripts/pixel_workspace_status.py" \
             "${PAGE_SIZE_FLAGS[@]}" \
             --disk_cache=/home/runner/.cache/bazel \
             //common:kernel_aarch64/Image
