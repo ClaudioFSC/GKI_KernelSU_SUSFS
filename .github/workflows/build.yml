@@ -189,7 +189,7 @@ jobs:
           else
             OS_PATCH_LEVEL_YM="$OS_PATCH_LEVEL_INPUT"
           fi
-          FIXED_BUILD_DATE="${OS_PATCH_LEVEL_YM}-05 04:20:00 UTC"
+          FIXED_BUILD_DATE="2026-09-18 01:33:13 UTC"
           SOURCE_DATE_EPOCH=$(date -u -d "$FIXED_BUILD_DATE" +%s)
           echo "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH" >> $GITHUB_ENV
           KBUILD_TS=$(date -u -d @${SOURCE_DATE_EPOCH} '+%a %b %d %H:%M:%S UTC %Y')
