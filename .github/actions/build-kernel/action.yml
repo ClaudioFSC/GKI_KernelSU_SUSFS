@@ -81,8 +81,11 @@ runs:
           if [ "$PAGE_SIZE" = "16k" ]; then
             PAGE_SIZE_FLAGS+=(--page_size=16k)
           fi
+          chmod +x "${GITHUB_WORKSPACE}/.github/scripts/pixel_workspace_status.py"
           tools/bazel build \
             --config=fast \
+            --config=stamp \
+            --workspace_status_command="${GITHUB_WORKSPACE}/.github/scripts/pixel_workspace_status.py" \
             "${PAGE_SIZE_FLAGS[@]}" \
             --disk_cache=/home/runner/.cache/bazel \
             //common:kernel_aarch64/Image
